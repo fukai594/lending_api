@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,7 @@ public class LendingController {
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
+	//備品テーブルのステータスを1:貸出中に更新
 	@PostMapping
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());//指定したアイテムIDが備品テーブルに存在しているかチェック
@@ -52,6 +54,9 @@ public class LendingController {
 		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
+	//返却された場合返却済みにステータスを更新。
+	//ステータス以外の貸出管理情報を更新する場合の対応。
+	//リクエストボディのステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 	@PutMapping("{id}")
 	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
 		Optional<Lending> selectedLending = this.lendingRepository.findById(id);
@@ -62,7 +67,11 @@ public class LendingController {
 		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
-	
+	//外部キー制約があって削除できない場合の対応
+	@DeleteMapping("{id}")
+	public void delete(@PathVariable("id") int id) {
+		this.lendingRepository.deleteById(id);
+	}
 	private ErrorResponse generateErrorResponse() {
 		ErrorResponse errorResponse = new ErrorResponse();
 		errorResponse.setMessage("指定したアイテムIDが存在しません");
