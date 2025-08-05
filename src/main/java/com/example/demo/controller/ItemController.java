@@ -31,10 +31,6 @@ public class ItemController {
 	public List<Item> getAll(){
 		return this.itemRepository.findAll();
 	}
-//	@GetMapping("{itemid}")
-//	public Item getById(@PathVariable("itemid") int itemid) {
-//		return this.itemRepository.findById(itemid).orElseThrow();
-//	}
 	@GetMapping("{itemid}")
 	public ResponseEntity<Object> getById(@PathVariable("itemid") int itemid) {
 		Optional<Item> item = this.itemRepository.findById(itemid);
@@ -48,11 +44,6 @@ public class ItemController {
 	public Item save(@RequestBody Item item) {
 		return this.itemRepository.save(item);
 	}
-//	@PutMapping("{itemid}")
-//	public Item update(@PathVariable("itemid") int itemid, @RequestBody Item item) {
-//		item.setItemId(itemid);
-//		return this.itemRepository.save(item);
-//	}
 	@PutMapping("{itemid}")
 	public ResponseEntity<Object> update(@PathVariable("itemid") int itemid, @RequestBody Item item) {
 		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
