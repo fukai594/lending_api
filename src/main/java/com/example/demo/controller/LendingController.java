@@ -53,8 +53,14 @@ public class LendingController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		Integer status = item.map(Item::getStatus).orElse(0);
-		if(status == 1) {//itemのステータスが貸出中の場合はエラーを発生させる
+		if(status == 1) {//itemのステータスが貸出中の場合はエラー
 			ErrorResponse errorResponse = generateErrorResponse(Constants.LENDING_ITEM);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
+		//itemの廃棄フラグが1:廃棄の場合エラー
+		Integer deleteFlag = item.map(Item::getDelete_flag).orElse(0);
+		if(deleteFlag == 1) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.DELETED_ITEM);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 		updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
@@ -73,7 +79,13 @@ public class LendingController {
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}	
+		}
+		//itemの廃棄フラグが1:廃棄の場合エラー
+		Integer deleteFlag = item.map(Item::getDelete_flag).orElse(0);
+		if(deleteFlag == 1) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.DELETED_ITEM);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
 		Integer status = selectedLending.map(Lending::getStatus).orElse(0);//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 		if(status == 1) {
 			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
