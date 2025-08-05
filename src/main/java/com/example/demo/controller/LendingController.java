@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,15 @@ public class LendingController {
 	@GetMapping
 	public List<Lending> getAll(){
 		return this.lendingRepository.findAll();
+	}
+	@GetMapping("{id}")
+	public ResponseEntity<Object> getById(@PathVariable("id") int id) {
+		Optional<Lending> lending = this.lendingRepository.findById(id);
+		if(lending.isEmpty()) {
+			ErrorResponse errorResponse = generateErrorResponse();
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	@PostMapping
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
