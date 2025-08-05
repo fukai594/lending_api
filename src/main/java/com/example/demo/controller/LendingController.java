@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.Constants.Constants;
 import com.example.demo.entity.ErrorResponse;
 import com.example.demo.entity.Item;
 import com.example.demo.entity.Lending;
@@ -34,47 +35,65 @@ public class LendingController {
 	public List<Lending> getAll(){
 		return this.lendingRepository.findAll();
 	}
+	
 	@GetMapping("{id}")
 	public ResponseEntity<Object> getById(@PathVariable("id") int id) {
-		Optional<Lending> lending = this.lendingRepository.findById(id);
+		Optional<Lending> lending = this.lendingRepository.findById(id);//指定したIdが存在するか確認
 		if(lending.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
-	//備品テーブルのステータスを1:貸出中に更新
 	@PostMapping
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
-		Optional<Item> item = this.itemRepository.findById(lending.getItemid());//指定したアイテムIDが備品テーブルに存在しているかチェック
+		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
 		if(item.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		Integer status = item.map(Item::getStatus).orElse(0);
+		if(status == 1) {//itemのステータスが貸出中の場合はエラーを発生させる
+			ErrorResponse errorResponse = generateErrorResponse(Constants.LENDING_ITEM);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
+		updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
 		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
-	//返却された場合返却済みにステータスを更新。
-	//ステータス以外の貸出管理情報を更新する場合の対応。
-	//リクエストボディのステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 	@PutMapping("{id}")
 	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
-		Optional<Lending> selectedLending = this.lendingRepository.findById(id);
+		Optional<Lending> selectedLending = this.lendingRepository.findById(id);//存在しないidであればエラーを返す
 		if(selectedLending.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		Integer itemid = selectedLending.map(Lending::getItemid).orElse(0);//アイテムIDを更新する際に存在確認のために必要
+		Optional<Item> item = this.itemRepository.findById(lending.getItemid());//存在しないアイテムIDの場合はエラーを返す
+		if(item.isEmpty()) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}	
+		Integer status = selectedLending.map(Lending::getStatus).orElse(0);//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
+		if(status == 1) {
+			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
 		}
 		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
-	//外部キー制約があって削除できない場合の対応
 	@DeleteMapping("{id}")
 	public void delete(@PathVariable("id") int id) {
 		this.lendingRepository.deleteById(id);
 	}
-	private ErrorResponse generateErrorResponse() {
+	private ErrorResponse generateErrorResponse(String errorMessage) {
 		ErrorResponse errorResponse = new ErrorResponse();
-		errorResponse.setMessage("指定したアイテムIDが存在しません");
+		errorResponse.setMessage(errorMessage);
 		return errorResponse;
+	}
+	private void updateItemStatus(Optional<Item> item, Integer status) {
+		item.ifPresent(i -> {
+			i.setStatus(status);//itemのステータス更新
+			this.itemRepository.save(i);
+		});
 	}
 }
