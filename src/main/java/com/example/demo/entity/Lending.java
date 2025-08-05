@@ -2,10 +2,13 @@ package com.example.demo.entity;
 
 import java.sql.Timestamp;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+@Entity
 public class Lending {
 	@Id
 		@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -15,6 +18,7 @@ public class Lending {
 		
 		private Integer employee_id;
 		
+		@Column(name="rental_datetime", insertable=false, updatable=false)
 		private Timestamp rental_datetime;
 		
 		private String return_deadline;
@@ -23,10 +27,12 @@ public class Lending {
 		
 		private Integer status;
 		
+		@Column(name="created_at", insertable=false, updatable=false)
 		private Timestamp created_at;
 		
 		private String created_by;
 		
+		@Column(name="updated_at", insertable=false, updatable=false)
 		private Timestamp updated_at;
 		
 		private String updated_by;

@@ -20,15 +20,16 @@ import com.example.demo.repository.LendingRepository;
 @RestController
 @RequestMapping("/lending")
 public class LendingController {
-	private LendingRepository LendingRepository;
+	private LendingRepository lendingRepository;
 	private ItemRepository itemRepository;
 	
 	public LendingController(LendingRepository LendingRepository, ItemRepository ItemRepository) {
-		this.LendingRepository = LendingRepository;
+		this.lendingRepository = LendingRepository;
+		this.itemRepository = ItemRepository;
 	}
 	@GetMapping
 	public List<Lending> getAll(){
-		return this.LendingRepository.findAll();
+		return this.lendingRepository.findAll();
 	}
 	@PostMapping
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
@@ -37,7 +38,7 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse();
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		this.LendingRepository.save(lending);
+		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	private ErrorResponse generateErrorResponse() {

@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import java.sql.Timestamp;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,10 +24,12 @@ public class Item {
 		
 		private Integer delete_flag;
 		
+		@Column(name="created_at", insertable=false, updatable=false)
 		private Timestamp created_at;
 		
 		private String created_by;
 		
+		@Column(name="updated_at", insertable=false, updatable=false)
 		private Timestamp updated_at;
 		
 		private String updated_by;
