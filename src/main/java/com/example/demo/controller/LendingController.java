@@ -40,7 +40,7 @@ public class LendingController {
 	public ResponseEntity<Object> getById(@PathVariable("id") int id) {
 		Optional<Lending> lending = this.lendingRepository.findById(id);//指定したIdが存在するか確認
 		if(lending.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
@@ -49,7 +49,7 @@ public class LendingController {
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
 		if(item.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		Integer status = item.map(Item::getStatus).orElse(0);
@@ -65,11 +65,11 @@ public class LendingController {
 	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
 		Optional<Lending> selectedLending = this.lendingRepository.findById(id);//存在しないidであればエラーを返す
 		if(selectedLending.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		Integer itemid = selectedLending.map(Lending::getItemid).orElse(0);//アイテムIDを更新する際に存在確認のために必要
-		Optional<Item> item = this.itemRepository.findById(lending.getItemid());//存在しないアイテムIDの場合はエラーを返す
+		Integer itemid = selectedLending.map(Lending::getItemid).orElse(0);//アイテムIDを更新する際に存在アイテムするID可の確認が必要
+		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
