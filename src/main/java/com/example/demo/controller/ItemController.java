@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.Constants.Constants;
 import com.example.demo.entity.ErrorResponse;
 import com.example.demo.entity.Item;
 import com.example.demo.repository.ItemRepository;
@@ -35,7 +36,7 @@ public class ItemController {
 	public ResponseEntity<Object> getById(@PathVariable("itemid") int itemid) {
 		Optional<Item> item = this.itemRepository.findById(itemid);
 		if(item.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(item);
@@ -48,7 +49,7 @@ public class ItemController {
 	public ResponseEntity<Object> update(@PathVariable("itemid") int itemid, @RequestBody Item item) {
 		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
 		if(selectedItem.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		item.setItemId(itemid);
@@ -59,9 +60,9 @@ public class ItemController {
 		this.itemRepository.deleteById(itemid);
 	}
 	
-	private ErrorResponse generateErrorResponse() {
+	private ErrorResponse generateErrorResponse(String errorMessage) {
 		ErrorResponse errorResponse = new ErrorResponse();
-		errorResponse.setMessage("item not found");
+		errorResponse.setMessage(errorMessage);
 		return errorResponse;
 	}
 }
