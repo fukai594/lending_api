@@ -75,7 +75,7 @@ public class LendingController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		Integer itemid = selectedLending.map(Lending::getItemid).orElse(0);//アイテムIDを更新する際に存在アイテムするID可の確認が必要
-		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
+		Optional<Item> item = this.itemRepository.findById(itemid);
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
