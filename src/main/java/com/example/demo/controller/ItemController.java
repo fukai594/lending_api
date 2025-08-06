@@ -52,13 +52,19 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		//貸出中の備品は廃棄登録不可の処理
 		item.setItemId(itemid);
 		return ResponseEntity.status(HttpStatus.OK).body(itemRepository.save(item));
 	}
 	@DeleteMapping("{itemid}")
-	public void delete(@PathVariable("itemid") int itemid) {
+	public ResponseEntity<Object> delete(@PathVariable("itemid") int itemid) {
+		//貸出中の備品は廃棄登録不可の処理
+		Optional<Item> item = this.itemRepository.findById(itemid);
+		if(item.map(Item::getStatus).orElse(0) != 1) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		this.itemRepository.deleteById(itemid);
+		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
 	private ErrorResponse generateErrorResponse(String errorMessage) {

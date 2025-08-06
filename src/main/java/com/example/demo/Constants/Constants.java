@@ -12,4 +12,5 @@ public class Constants {
 	public static final String VALIDATED_INPUT = "不正な入力";
 	public static final String VALIDATED_CREATED_BY = "登録者は更新できません";
 	public static final String VALIDATED_CREATED_AT = "登録日時は更新できません";
+	public static final String VALIDATED_DELETE = "貸出中の備品は削除できません";
 }
