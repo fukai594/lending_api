@@ -52,6 +52,7 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		//貸出中の備品は廃棄登録不可の処理
 		item.setItemId(itemid);
 		return ResponseEntity.status(HttpStatus.OK).body(itemRepository.save(item));
 	}

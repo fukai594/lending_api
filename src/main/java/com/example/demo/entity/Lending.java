@@ -23,9 +23,11 @@ public class Lending {
 		
 		private String return_deadline;
 		
-		private Integer allow_extension;
+		@Column(name = "allow_extension", nullable=false)
+		private Integer allow_extension = 0;
 		
-		private Integer status;
+		@Column(name = "status", nullable=false)
+		private Integer status = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
 		private Timestamp created_at;
