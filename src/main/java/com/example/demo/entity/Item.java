@@ -20,9 +20,11 @@ public class Item {
 		
 		private String item_info;
 		
-		private Integer status;
+		@Column(name = "status", nullable=false)
+		private Integer status = 0;
 		
-		private Integer delete_flag;
+		@Column(name = "delete_flag", nullable=false)
+		private Integer delete_flag = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
 		private Timestamp created_at;
