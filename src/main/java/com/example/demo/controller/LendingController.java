@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,15 +47,45 @@ public class LendingController {
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
+	private boolean isTomorrowOrLater(LocalDate date) {//明日以降の日にちであるかの確認
+		LocalDate today = LocalDate.now();
+		if(date.isAfter(today)) {
+			return true;
+		}
+		return false;
+	}
 	@PostMapping
 	public ResponseEntity<Object> save(@RequestBody Lending lending) {
+		//バリデーションチェック
+		if(lending.getStatus() != 0 && lending.getStatus() != null) {//statusのバリデーション
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//貸出延長可否のバリデーション
+		if(lending.getAllow_extension() != 0 &&	lending.getAllow_extension() != 1 &&
+		lending.getAllow_extension() != null)  {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ALLOW_EXTENSION);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//返却期限のバリデーション
+		String deadline = lending.getReturn_deadline();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		try {
+			LocalDate date = LocalDate.parse(deadline, formatter);			
+			if(!isTomorrowOrLater(date)) {
+				ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_RETURN_DEADLINE);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+			}
+		}catch(Exception e) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_INPUT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}        
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		Integer status = item.map(Item::getStatus).orElse(0);
-		if(status == 1) {//itemのステータスが貸出中の場合はエラー
+		if(item.map(Item::getStatus).orElse(0) == 1) {//itemのステータスが貸出中の場合はエラー
 			ErrorResponse errorResponse = generateErrorResponse(Constants.LENDING_ITEM);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
@@ -69,14 +101,47 @@ public class LendingController {
 	}
 	@PutMapping("{id}")
 	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
-		if(this.lendingRepository.findById(id).isEmpty()) {//存在しないidであればエラーを返す
-			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_LENDING);
+		//バリデーションチェック
+		if(lending.getStatus() != 0 && lending.getStatus() != 1) {//statusのバリデーション
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		//アイテムIDを更新する際に存在アイテムするIDかの確認が必要
+		//貸出延長可否のバリデーション
+		if(lending.getAllow_extension() != 0 &&	lending.getAllow_extension() != 1 &&
+		lending.getAllow_extension() != null)  {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ALLOW_EXTENSION);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//返却期限のバリデーション
+		String deadline = lending.getReturn_deadline();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		try {
+			LocalDate date = LocalDate.parse(deadline, formatter);			
+			if(!isTomorrowOrLater(date)) {
+				ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_RETURN_DEADLINE);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+			}
+		}catch(Exception e) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_INPUT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//登録日時のバリデーション
+		if(lending.getCreated_at() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_AT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//登録者のバリデーション
+		if(lending.getCreated_by() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
-		if(item.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
+		if(item.isEmpty()) {//存在しないアイテムidであればエラーを返す
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		if(this.lendingRepository.findById(id).isEmpty()) {//存在しないidであればエラーを返す
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		//itemの廃棄フラグが1:廃棄の場合エラー
@@ -88,6 +153,9 @@ public class LendingController {
 		if(lending.getStatus() == 1) {//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
 		}
+		//登録者、登録日時をセットする
+		lending.setCreated_at(this.lendingRepository.findById(id).map(Lending::getCreated_at).orElse(null));
+		lending.setCreated_by(this.lendingRepository.findById(id).map(Lending::getCreated_by).orElse(null));
 		this.lendingRepository.save(lending);
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
