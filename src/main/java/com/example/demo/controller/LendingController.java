@@ -69,13 +69,12 @@ public class LendingController {
 	}
 	@PutMapping("{id}")
 	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
-		Optional<Lending> selectedLending = this.lendingRepository.findById(id);//存在しないidであればエラーを返す
-		if(selectedLending.isEmpty()) {
+		if(this.lendingRepository.findById(id).isEmpty()) {//存在しないidであればエラーを返す
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		Integer itemid = selectedLending.map(Lending::getItemid).orElse(0);//アイテムIDを更新する際に存在アイテムするID可の確認が必要
-		Optional<Item> item = this.itemRepository.findById(itemid);
+		//アイテムIDを更新する際に存在アイテムするIDかの確認が必要
+		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -86,8 +85,7 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.DELETED_ITEM);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
-		Integer status = selectedLending.map(Lending::getStatus).orElse(0);//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
-		if(status == 1) {
+		if(lending.getStatus() == 1) {//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
 		}
 		this.lendingRepository.save(lending);
