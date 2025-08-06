@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.Constants.Constants;
 import com.example.demo.entity.ErrorResponse;
 import com.example.demo.entity.Item;
 import com.example.demo.repository.ItemRepository;
@@ -31,15 +32,11 @@ public class ItemController {
 	public List<Item> getAll(){
 		return this.itemRepository.findAll();
 	}
-//	@GetMapping("{itemid}")
-//	public Item getById(@PathVariable("itemid") int itemid) {
-//		return this.itemRepository.findById(itemid).orElseThrow();
-//	}
 	@GetMapping("{itemid}")
 	public ResponseEntity<Object> getById(@PathVariable("itemid") int itemid) {
 		Optional<Item> item = this.itemRepository.findById(itemid);
 		if(item.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(item);
@@ -48,29 +45,31 @@ public class ItemController {
 	public Item save(@RequestBody Item item) {
 		return this.itemRepository.save(item);
 	}
-//	@PutMapping("{itemid}")
-//	public Item update(@PathVariable("itemid") int itemid, @RequestBody Item item) {
-//		item.setItemId(itemid);
-//		return this.itemRepository.save(item);
-//	}
 	@PutMapping("{itemid}")
 	public ResponseEntity<Object> update(@PathVariable("itemid") int itemid, @RequestBody Item item) {
 		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
 		if(selectedItem.isEmpty()) {
-			ErrorResponse errorResponse = generateErrorResponse();
+			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		item.setItemId(itemid);
 		return ResponseEntity.status(HttpStatus.OK).body(itemRepository.save(item));
 	}
 	@DeleteMapping("{itemid}")
-	public void delete(@PathVariable("itemid") int itemid) {
+	public ResponseEntity<Object> delete(@PathVariable("itemid") int itemid) {
+		//貸出中の備品は廃棄登録不可の処理
+		Optional<Item> item = this.itemRepository.findById(itemid);
+		if(item.map(Item::getStatus).orElse(0) != 1) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		this.itemRepository.deleteById(itemid);
+		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
-	private ErrorResponse generateErrorResponse() {
+	private ErrorResponse generateErrorResponse(String errorMessage) {
 		ErrorResponse errorResponse = new ErrorResponse();
-		errorResponse.setMessage("item not found");
+		errorResponse.setMessage(errorMessage);
 		return errorResponse;
 	}
 }

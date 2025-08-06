@@ -9,22 +9,25 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class Item {
+public class Lending {
 	@Id
 		@GeneratedValue(strategy=GenerationType.IDENTITY)
+		private Integer id;
+	
 		private Integer itemid;
 		
-		private String name;
+		private Integer employee_id;
 		
-		private String category;
+		@Column(name="rental_datetime", insertable=false, updatable=false)
+		private Timestamp rental_datetime;
 		
-		private String item_info;
+		private String return_deadline;
+		
+		@Column(name = "allow_extension", nullable=false)
+		private Integer allow_extension = 0;
 		
 		@Column(name = "status", nullable=false)
 		private Integer status = 0;
-		
-		@Column(name = "delete_flag", nullable=false)
-		private Integer delete_flag = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
 		private Timestamp created_at;
@@ -35,37 +38,53 @@ public class Item {
 		private Timestamp updated_at;
 		
 		private String updated_by;
+
+		public Integer getId() {
+			return id;
+		}
 		
-		public Integer getItemId() {
+		public void setId(Integer id) {
+			this.id = id;
+		}
+		
+		public Integer getItemid() {
 			return itemid;
 		}
 
-		public void setItemId(Integer itemId) {
-			this.itemid = itemId;
-		}
-		
-		public String getName() {
-			return name;
+		public void setItemid(Integer itemid) {
+			this.itemid = itemid;
 		}
 
-		public void setName(String name) {
-			this.name = name;
+		public Integer getEmployee_id() {
+			return employee_id;
 		}
 
-		public String getCategory() {
-			return category;
+		public void setEmployee_id(Integer employee_id) {
+			this.employee_id = employee_id;
 		}
 
-		public void setCategory(String category) {
-			this.category = category;
+		public Timestamp getRental_datetime() {
+			return rental_datetime;
 		}
 
-		public String getItem_info() {
-			return item_info;
+		public void setRental_datetime(Timestamp rental_datetime) {
+			this.rental_datetime = rental_datetime;
 		}
 
-		public void setItem_info(String item_info) {
-			this.item_info = item_info;
+		public String getReturn_deadline() {
+			return return_deadline;
+		}
+
+		public void setReturn_deadline(String return_deadline) {
+			this.return_deadline = return_deadline;
+		}
+
+		public Integer getAllow_extension() {
+			return allow_extension;
+		}
+
+		public void setAllow_extension(Integer allow_extension) {
+			this.allow_extension = allow_extension;
 		}
 
 		public Integer getStatus() {
@@ -74,14 +93,6 @@ public class Item {
 
 		public void setStatus(Integer status) {
 			this.status = status;
-		}
-
-		public Integer getDelete_flag() {
-			return delete_flag;
-		}
-
-		public void setDelete_flag(Integer delete_flag) {
-			this.delete_flag = delete_flag;
 		}
 
 		public Timestamp getCreated_at() {
@@ -115,5 +126,4 @@ public class Item {
 		public void setUpdated_by(String updated_by) {
 			this.updated_by = updated_by;
 		}
-		
 }
