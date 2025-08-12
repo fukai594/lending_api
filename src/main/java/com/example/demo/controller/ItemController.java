@@ -90,7 +90,16 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.UNMATCH_ITEM_ID);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		
+		//登録日時は変更できない
+		if(item.getCreated_at() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_AT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//登録者は変更できない
+		if(item.getCreated_by() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		item.setItemId(itemid);
 		return ResponseEntity.status(HttpStatus.OK).body(itemRepository.save(item));
 	}

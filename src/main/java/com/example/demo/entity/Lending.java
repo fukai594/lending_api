@@ -1,42 +1,55 @@
 package com.example.demo.entity;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Lending {
 	@Id
 		@GeneratedValue(strategy=GenerationType.IDENTITY)
 		private Integer id;
-	
+		
+		@NotNull
 		private Integer itemid;
 		
+		@NotNull
+		@Min(value = 0, message="入力エラー:0以上")
 		private Integer employee_id;
 		
 		@Column(name="rental_datetime", insertable=false, updatable=false)
-		private Timestamp rental_datetime;
+		private LocalDate rental_datetime;
 		
 		private String return_deadline;
 		
+		@Min(0)
+		@Max(1)
 		@Column(name = "allow_extension", nullable=false)
 		private Integer allow_extension = 0;
 		
+		@Min(0)
+		@Max(1)
 		@Column(name = "status", nullable=false)
 		private Integer status = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
-		private Timestamp created_at;
+		private LocalDate created_at;
 		
+		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
 		private String created_by;
 		
 		@Column(name="updated_at", insertable=false, updatable=false)
-		private Timestamp updated_at;
+		private LocalDate updated_at;
 		
+		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
 		private String updated_by;
 
 		public Integer getId() {
@@ -63,11 +76,11 @@ public class Lending {
 			this.employee_id = employee_id;
 		}
 
-		public Timestamp getRental_datetime() {
+		public LocalDate getRental_datetime() {
 			return rental_datetime;
 		}
 
-		public void setRental_datetime(Timestamp rental_datetime) {
+		public void setRental_datetime(LocalDate rental_datetime) {
 			this.rental_datetime = rental_datetime;
 		}
 
@@ -95,11 +108,11 @@ public class Lending {
 			this.status = status;
 		}
 
-		public Timestamp getCreated_at() {
+		public LocalDate getCreated_at() {
 			return created_at;
 		}
 
-		public void setCreated_at(Timestamp created_at) {
+		public void setCreated_at(LocalDate created_at) {
 			this.created_at = created_at;
 		}
 
@@ -111,11 +124,11 @@ public class Lending {
 			this.created_by = created_by;
 		}
 
-		public Timestamp getUpdated_at() {
+		public LocalDate getUpdated_at() {
 			return updated_at;
 		}
 
-		public void setUpdated_at(Timestamp updated_at) {
+		public void setUpdated_at(LocalDate updated_at) {
 			this.updated_at = updated_at;
 		}
 
