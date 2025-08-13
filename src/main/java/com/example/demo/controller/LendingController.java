@@ -59,7 +59,9 @@ public class LendingController {
 		return false;
 	}
 	@PostMapping
-	public ResponseEntity<Object> save(@RequestBody @Validated Lending lending, BindingResult bindingResult) {
+	public ResponseEntity<Object> save(
+			@RequestBody @Validated Lending lending,
+			BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
             // エラーメッセージを収集
             Map<String, String> errors = new HashMap<>();
