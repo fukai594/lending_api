@@ -2,11 +2,15 @@ package com.example.demo.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,22 +59,30 @@ public class LendingController {
 		return false;
 	}
 	@PostMapping
-	public ResponseEntity<Object> save(@RequestBody Lending lending) {
-		//バリデーションチェック
+	public ResponseEntity<Object> save(
+			@RequestBody @Validated Lending lending,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+            // エラーメッセージを収集
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error -> 
+                errors.put(error.getField(), error.getDefaultMessage())
+            );
+            return ResponseEntity.badRequest().body(errors);
+        }
+		//ステータスがnullの時は0をセットする
+		if(lending.getStatus() == null) {
+			lending.setStatus(0);
+		}
+		//ステータスのバリデーション
 		if(lending.getStatus() != 0 && lending.getStatus() != null) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}
-		//貸出延長可否のバリデーション
-		if(lending.getAllow_extension() != 0 &&	lending.getAllow_extension() != 1 &&
-		lending.getAllow_extension() != null)  {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ALLOW_EXTENSION);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		//返却期限のバリデーション
 		String deadline = lending.getReturn_deadline();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-		try {
+		try {//受け取った文字列をlocalDate型に変換
 			LocalDate date = LocalDate.parse(deadline, formatter);			
 			if(!isTomorrowOrLater(date)) {
 				ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_RETURN_DEADLINE);
@@ -79,8 +91,9 @@ public class LendingController {
 		}catch(Exception e) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_INPUT);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}        
-		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
+		}
+		//指定したアイテムIDが貸出可能かの確認
+		Optional<Item> item = this.itemRepository.findById(lending.getItemid());//存在チェック
 		if(item.isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -95,21 +108,34 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.DELETED_ITEM);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
-		updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
-		this.lendingRepository.save(lending);
+		try {
+			this.lendingRepository.save(lending);
+			updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
+		}catch(Exception e) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_INPUT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	@PutMapping("{id}")
-	public ResponseEntity<Object> update(@PathVariable("id") int id, @RequestBody Lending lending){
+	public ResponseEntity<Object> update(@PathVariable("id") int id,
+			@RequestBody @Validated Lending lending,
+			BindingResult bindingResult){
+		if (bindingResult.hasErrors()) {
+            // エラーメッセージを収集
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error -> 
+                errors.put(error.getField(), error.getDefaultMessage())
+            );
+            return ResponseEntity.badRequest().body(errors);
+        }
+		//ステータスがnullの場合は0をセットする
+		if(lending.getStatus() == null) {
+			lending.setStatus(0);
+		}
 		//バリデーションチェック
 		if(lending.getStatus() != 0 && lending.getStatus() != 1) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}
-		//貸出延長可否のバリデーション
-		if(lending.getAllow_extension() != 0 &&	lending.getAllow_extension() != 1 &&
-		lending.getAllow_extension() != null)  {
-			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ALLOW_EXTENSION);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		//返却期限のバリデーション
@@ -160,8 +186,14 @@ public class LendingController {
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	@DeleteMapping("{id}")
-	public void delete(@PathVariable("id") int id) {
-		this.lendingRepository.deleteById(id);
+	public ResponseEntity<Object> delete(@PathVariable("id") int id) {
+		Optional<Lending> lending = this.lendingRepository.findById(id);
+		if(lending.isEmpty()) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE_LENDING);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		this.itemRepository.deleteById(id);
+		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	private ErrorResponse generateErrorResponse(String errorMessage) {
 		ErrorResponse errorResponse = new ErrorResponse();
@@ -170,7 +202,7 @@ public class LendingController {
 	}
 	private void updateItemStatus(Optional<Item> item, Integer status) {
 		item.ifPresent(i -> {
-			i.setStatus(status);//itemのステータス更新
+			i.setStatus(status);//itemテーブルのステータス更新
 			this.itemRepository.save(i);
 		});
 	}

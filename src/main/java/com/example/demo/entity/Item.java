@@ -1,39 +1,51 @@
 package com.example.demo.entity;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Item {
 	@Id
 		@GeneratedValue(strategy=GenerationType.IDENTITY)
 		private Integer itemid;
-		
+	
+	    @Size(min = 1, max = 100, message="入力エラー：100文字以内")
 		private String name;
-		
+	    
+	    @Size(min = 1, max = 100, message="入力エラー：100文字以内")
 		private String category;
 		
+	    @Size(max = 100, message="入力エラー: 0文字～100文字")
 		private String item_info;
 		
+		@Min(0)
+		@Max(1)
 		@Column(name = "status", nullable=false)
 		private Integer status = 0;
 		
+		@Min(0)
+		@Max(1)
 		@Column(name = "delete_flag", nullable=false)
 		private Integer delete_flag = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
-		private Timestamp created_at;
+		private LocalDate created_at;
 		
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String created_by;
 		
 		@Column(name="updated_at", insertable=false, updatable=false)
-		private Timestamp updated_at;
+		private LocalDate updated_at;
 		
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String updated_by;
 		
 		public Integer getItemId() {
@@ -84,11 +96,11 @@ public class Item {
 			this.delete_flag = delete_flag;
 		}
 
-		public Timestamp getCreated_at() {
+		public LocalDate getCreated_at() {
 			return created_at;
 		}
 
-		public void setCreated_at(Timestamp created_at) {
+		public void setCreated_at(LocalDate created_at) {
 			this.created_at = created_at;
 		}
 
@@ -100,11 +112,11 @@ public class Item {
 			this.created_by = created_by;
 		}
 
-		public Timestamp getUpdated_at() {
+		public LocalDate getUpdated_at() {
 			return updated_at;
 		}
 
-		public void setUpdated_at(Timestamp updated_at) {
+		public void setUpdated_at(LocalDate updated_at) {
 			this.updated_at = updated_at;
 		}
 
