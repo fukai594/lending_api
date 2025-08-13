@@ -68,6 +68,10 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
+		//ステータスがnullの時は0をセットする
+		if(lending.getStatus() == null) {
+			lending.setStatus(0);
+		}
 		//ステータスのバリデーション
 		if(lending.getStatus() != 0 && lending.getStatus() != null) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -102,8 +106,13 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.DELETED_ITEM);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
-		updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
-		this.lendingRepository.save(lending);
+		try {
+			this.lendingRepository.save(lending);
+			updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
+		}catch(Exception e) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_INPUT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	@PutMapping("{id}")
@@ -118,6 +127,10 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
+		//ステータスがnullの場合は0をセットする
+		if(lending.getStatus() == null) {
+			lending.setStatus(0);
+		}
 		//バリデーションチェック
 		if(lending.getStatus() != 0 && lending.getStatus() != 1) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -171,8 +184,14 @@ public class LendingController {
 		return ResponseEntity.status(HttpStatus.OK).body(lending);
 	}
 	@DeleteMapping("{id}")
-	public void delete(@PathVariable("id") int id) {
-		this.lendingRepository.deleteById(id);
+	public ResponseEntity<Object> delete(@PathVariable("id") int id) {
+		Optional<Lending> lending = this.lendingRepository.findById(id);
+		if(lending.isEmpty()) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE_LENDING);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		this.itemRepository.deleteById(id);
+		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	private ErrorResponse generateErrorResponse(String errorMessage) {
 		ErrorResponse errorResponse = new ErrorResponse();

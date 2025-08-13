@@ -115,6 +115,10 @@ public class ItemController {
 	public ResponseEntity<Object> delete(@PathVariable("itemid") int itemid) {
 		//貸出中の備品は廃棄登録不可の処理
 		Optional<Item> item = this.itemRepository.findById(itemid);
+		if(item.isEmpty()) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE_ITEM);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		if(item.map(Item::getStatus).orElse(0) == 1) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
