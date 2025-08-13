@@ -43,13 +43,13 @@ public class Lending {
 		@Column(name="created_at", insertable=false, updatable=false)
 		private LocalDate created_at;
 		
-		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String created_by;
 		
 		@Column(name="updated_at", insertable=false, updatable=false)
 		private LocalDate updated_at;
 		
-		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String updated_by;
 
 		public Integer getId() {
