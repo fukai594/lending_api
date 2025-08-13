@@ -85,6 +85,11 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		//itemidがnullの場合エラー
+		if(item.getItemId() == null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATETD_ITEM_ID);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		//リクエストボディのitemidとクエリパラメータで指定したitemidが正しいか確認
 		if(itemid != item.getItemId()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.UNMATCH_ITEM_ID);
@@ -101,13 +106,16 @@ public class ItemController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		item.setItemId(itemid);
+		//登録者、登録日時をセットする
+		item.setCreated_at(this.itemRepository.findById(itemid).map(Item::getCreated_at).orElse(null));
+		item.setCreated_by(this.itemRepository.findById(itemid).map(Item::getCreated_by).orElse(null));
 		return ResponseEntity.status(HttpStatus.OK).body(itemRepository.save(item));
 	}
 	@DeleteMapping("{itemid}")
 	public ResponseEntity<Object> delete(@PathVariable("itemid") int itemid) {
 		//貸出中の備品は廃棄登録不可の処理
 		Optional<Item> item = this.itemRepository.findById(itemid);
-		if(item.map(Item::getStatus).orElse(0) != 1) {
+		if(item.map(Item::getStatus).orElse(0) == 1) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}

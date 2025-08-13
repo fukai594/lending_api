@@ -17,10 +17,10 @@ public class Item {
 		@GeneratedValue(strategy=GenerationType.IDENTITY)
 		private Integer itemid;
 	
-	    @Size(min = 1, max = 100, message="入力エラー：1文字～100文字")
+	    @Size(min = 1, max = 100, message="入力エラー：100文字以内")
 		private String name;
 	    
-	    @Size(min = 1, max = 100, message="入力エラー：1文字～100文字")
+	    @Size(min = 1, max = 100, message="入力エラー：100文字以内")
 		private String category;
 		
 	    @Size(max = 100, message="入力エラー: 0文字～100文字")
@@ -39,13 +39,13 @@ public class Item {
 		@Column(name="created_at", insertable=false, updatable=false)
 		private LocalDate created_at;
 		
-		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String created_by;
 		
 		@Column(name="updated_at", insertable=false, updatable=false)
 		private LocalDate updated_at;
 		
-		@Size(min = 1, max = 50, message="入力エラー：1文字～50文字")
+		@Size(min = 1, max = 50, message="入力エラー：50文字以内")
 		private String updated_by;
 		
 		public Integer getItemId() {
