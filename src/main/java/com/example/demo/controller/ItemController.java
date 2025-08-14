@@ -89,10 +89,13 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		System.out.println(item.getStatus());
 		//ステータスがnullの時は、更新するitemのステータスをセットする
-		if(item.getStatus() == null) {
-			Optional<Item> selectedItem = this.itemRepository.findById(itemid);
-			item.setStatus(selectedItem.map(Item::getStatus).orElse(0));
+		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
+		//ステータスは更新できないようにする
+		if(item.getStatus() != selectedItem.map(Item::getStatus).orElse(0)) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		//itemidがnullの場合エラー
 		if(item.getItemId() == null) {

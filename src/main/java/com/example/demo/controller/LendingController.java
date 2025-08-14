@@ -161,7 +161,13 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		//アイテムIDは更新できない
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
+		Integer itemId = item.map(Item::getItemId).orElse(0);
+		if(lending.getItemid() != itemId) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ITEMID);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		if(item.isEmpty()) {//存在しないアイテムidであればエラーを返す
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -189,6 +195,7 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		
 		//登録者、登録日時をセットする
 		lending.setCreated_at(this.lendingRepository.findById(id).map(Lending::getCreated_at).orElse(null));
 		lending.setCreated_by(this.lendingRepository.findById(id).map(Lending::getCreated_by).orElse(null));
