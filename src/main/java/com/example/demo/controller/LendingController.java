@@ -129,10 +129,6 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
-		//ステータスがnullの場合は0をセットする
-		if(lending.getStatus() == null) {
-			lending.setStatus(0);
-		}
 		//バリデーションチェック
 		if(lending.getStatus() != 0 && lending.getStatus() != 1) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
