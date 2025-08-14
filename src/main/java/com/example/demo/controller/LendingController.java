@@ -70,10 +70,6 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
-		//ステータスがnullの時は0をセットする
-		if(lending.getStatus() == null) {
-			lending.setStatus(0);
-		}
 		//ステータスのバリデーション
 		if(lending.getStatus() != 0 && lending.getStatus() != null) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -109,6 +105,7 @@ public class LendingController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 		try {
+			lending.setStatus(0);
 			this.lendingRepository.save(lending);
 			updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
 		}catch(Exception e) {
@@ -129,10 +126,6 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
-		//ステータスがnullの場合は0をセットする
-		if(lending.getStatus() == null) {
-			lending.setStatus(0);
-		}
 		//バリデーションチェック
 		if(lending.getStatus() != 0 && lending.getStatus() != 1) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -161,7 +154,13 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
+		//アイテムIDは更新できない
 		Optional<Item> item = this.itemRepository.findById(lending.getItemid());
+		Integer itemId = item.map(Item::getItemId).orElse(0);
+		if(lending.getItemid() != itemId) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_ITEMID);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		if(item.isEmpty()) {//存在しないアイテムidであればエラーを返す
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -179,6 +178,17 @@ public class LendingController {
 		if(lending.getStatus() == 1) {//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
 		}
+		//登録日時は変更できない
+		if(lending.getCreated_at() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_AT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//登録者は変更できない
+		if(lending.getCreated_by() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		
 		//登録者、登録日時をセットする
 		lending.setCreated_at(this.lendingRepository.findById(id).map(Lending::getCreated_at).orElse(null));
 		lending.setCreated_by(this.lendingRepository.findById(id).map(Lending::getCreated_by).orElse(null));
@@ -192,7 +202,7 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		this.itemRepository.deleteById(id);
+		this.lendingRepository.deleteById(id);
 		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	private ErrorResponse generateErrorResponse(String errorMessage) {

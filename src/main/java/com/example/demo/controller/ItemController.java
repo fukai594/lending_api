@@ -55,6 +55,10 @@ public class ItemController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
+		//ステータスがnullの時は0をセットする
+		if(item.getStatus() == null) {
+			item.setStatus(0);
+		}
 		//statusのバリデーション
 		if(item.getStatus() != 0 && item.getStatus() != null) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -83,6 +87,13 @@ public class ItemController {
 		//クエリパラメータで指定したitemidの存在確認
 		if(this.itemRepository.findById(itemid).isEmpty()) {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//ステータスがnullの時は、更新するitemのステータスをセットする
+		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
+		//ステータスは更新できないようにする
+		if(item.getStatus() != selectedItem.map(Item::getStatus).orElse(0)) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
 		//itemidがnullの場合エラー

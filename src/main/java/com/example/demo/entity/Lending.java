@@ -37,7 +37,7 @@ public class Lending {
 		
 		@Min(0)
 		@Max(1)
-		@Column(name = "status", nullable=false)
+		@Column(name = "status")
 		private Integer status = 0;
 		
 		@Column(name="created_at", insertable=false, updatable=false)
