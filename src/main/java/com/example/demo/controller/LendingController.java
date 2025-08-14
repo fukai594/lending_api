@@ -192,7 +192,7 @@ public class LendingController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_DELETE_LENDING);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		this.itemRepository.deleteById(id);
+		this.lendingRepository.deleteById(id);
 		return  ResponseEntity.status(HttpStatus.OK).build();
 	}
 	private ErrorResponse generateErrorResponse(String errorMessage) {
