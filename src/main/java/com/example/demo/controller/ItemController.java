@@ -89,7 +89,6 @@ public class ItemController {
 			ErrorResponse errorResponse = generateErrorResponse(Constants.NOT_FOUND_ITEM);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 		}
-		System.out.println(item.getStatus());
 		//ステータスがnullの時は、更新するitemのステータスをセットする
 		Optional<Item> selectedItem = this.itemRepository.findById(itemid);
 		//ステータスは更新できないようにする

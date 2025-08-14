@@ -70,10 +70,6 @@ public class LendingController {
             );
             return ResponseEntity.badRequest().body(errors);
         }
-		//ステータスがnullの時は0をセットする
-		if(lending.getStatus() == null) {
-			lending.setStatus(0);
-		}
 		//ステータスのバリデーション
 		if(lending.getStatus() != 0 && lending.getStatus() != null) {//statusのバリデーション
 			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_STATUS_POST);
@@ -109,6 +105,7 @@ public class LendingController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 		try {
+			lending.setStatus(0);
 			this.lendingRepository.save(lending);
 			updateItemStatus(item, 1);//itemのステータスを1:貸出中に更新
 		}catch(Exception e) {
