@@ -179,6 +179,16 @@ public class LendingController {
 		if(lending.getStatus() == 1) {//ステータスが1:返却済みであれば備品テーブルのステータスを0:貸出可に更新
 			updateItemStatus(item, 0);//itemのステータスを0:貸出可に更新
 		}
+		//登録日時は変更できない
+		if(lending.getCreated_at() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_AT);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
+		//登録者は変更できない
+		if(lending.getCreated_by() != null) {
+			ErrorResponse errorResponse = generateErrorResponse(Constants.VALIDATED_CREATED_BY);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+		}
 		//登録者、登録日時をセットする
 		lending.setCreated_at(this.lendingRepository.findById(id).map(Lending::getCreated_at).orElse(null));
 		lending.setCreated_by(this.lendingRepository.findById(id).map(Lending::getCreated_by).orElse(null));
